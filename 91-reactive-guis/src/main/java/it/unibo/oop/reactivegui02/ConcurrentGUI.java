@@ -35,10 +35,17 @@ public final class ConcurrentGUI extends JFrame {
         this.getContentPane().add(panel);
         this.setVisible(true);
         final Agent agent = new Agent();
-        new Thread(agent).start();
-        stop.addActionListener((e) -> agent.stopCounting());
+        var  t= new Thread(agent);
+        t.start();
+        stop.addActionListener((e) -> {
+            agent.stopCounting();
+            down.setEnabled(false);
+            up.setEnabled(false);
+        });
         up.addActionListener((e)->agent.countup());
         down.addActionListener((e)->agent.countdown());
+     
+        
 
        
     }
@@ -69,6 +76,7 @@ public final class ConcurrentGUI extends JFrame {
                     ex.printStackTrace();
                 }
             }
+
         }
         public void stopCounting() {
             this.stop = true;
