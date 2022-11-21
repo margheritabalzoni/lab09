@@ -2,6 +2,7 @@ package it.unibo.oop.reactivegui02;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -33,5 +34,52 @@ public final class ConcurrentGUI extends JFrame {
         panel.add(stop);
         this.getContentPane().add(panel);
         this.setVisible(true);
+        final Agent agent = new Agent();
+        new Thread(agent).start();
+        stop.addActionListener((e) -> agent.stopCounting());
+        up.addActionListener((e)->agent.countup());
+        down.addActionListener((e)->agent.countdown());
+
+       
+    }
+    private class Agent implements Runnable {
+        private volatile boolean stop;
+        private volatile boolean up=true;
+        private volatile boolean down=false;
+        private int counter;
+        @Override
+        public void run() {
+            while (!this.stop) {
+                try {
+                    if(up){
+                        final var nextText = Integer.toString(this.counter);
+                        SwingUtilities.invokeAndWait(() -> ConcurrentGUI.this.display.setText(nextText));
+                        this.counter++;
+                        Thread.sleep(100);
+                    }else{
+                        if(down){
+                            final var nextText = Integer.toString(this.counter);
+                            SwingUtilities.invokeAndWait(() -> ConcurrentGUI.this.display.setText(nextText));
+                            this.counter--;
+                            Thread.sleep(100);
+                        }
+                    }
+                    
+                } catch (InvocationTargetException | InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        public void stopCounting() {
+            this.stop = true;
+        }
+        public void countdown(){
+            this.down =true;
+            this.up= false;
+        }
+        public void countup(){
+            this.down =false;
+            this.up= true;
+        }
     }
 }
